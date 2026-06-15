@@ -1,27 +1,5 @@
-<div align="center">
-
-```
-██╗     ███████╗███████╗████████╗ ██████╗ ██████╗ ██████╗ ███████╗
-██║     ██╔════╝██╔════╝╚══██╔══╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
-██║     █████╗  █████╗     ██║   ██║     ██║   ██║██║  ██║█████╗  
-██║     ██╔══╝  ██╔══╝     ██║   ██║     ██║   ██║██║  ██║██╔══╝  
-███████╗███████╗███████╗   ██║   ╚██████╗╚██████╔╝██████╔╝███████╗
-╚══════╝╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
-
-          ███████╗ ██████╗ ██╗    ██╗   ██╗███████╗██████╗
-          ██╔════╝██╔═══██╗██║    ██║   ██║██╔════╝██╔══██╗
-          ███████╗██║   ██║██║    ██║   ██║█████╗  ██████╔╝
-          ╚════██║██║   ██║██║    ╚██╗ ██╔╝██╔══╝  ██╔══██╗
-          ███████║╚██████╔╝███████╗╚████╔╝ ███████╗██║  ██║
-          ╚══════╝ ╚═════╝ ╚══════╝ ╚═══╝  ╚══════╝╚═╝  ╚═╝
-                                                            
-                         ██████╗  ██████╗ ████████╗
-                         ██╔══██╗██╔═══██╗╚══██╔══╝
-                         ██████╔╝██║   ██║   ██║   
-                         ██╔══██╗██║   ██║   ██║   
-                         ██████╔╝╚██████╔╝   ██║   
-                         ╚═════╝  ╚═════╝    ╚═╝   
-```
+### Leetcode Solver Bot
+![Leetcode Solver Bot](./assets/banner.jpg)
 
 *"I came, I saw, I copied the optimal solution."* — Julius Caesar, probably
 
@@ -45,7 +23,7 @@
 <br/>
 
 <div align="center">
-  <img src="./lc-solver-bot.gif" alt="Demo GIF">
+  <img src="./assets/lc-solver-bot.gif" alt="Demo GIF">
 </div>
 
 <br/>
@@ -54,45 +32,21 @@
 
 ## ✦ Features
 
-| | Feature | Detail |
-|---|---|---|
-| 📦 | **1,465+ C++ solutions** | Local JSON archive — no network call for the solution itself |
-| 🛡️ | **Cloudflare bypass** | Headed Chrome with persistent session; manual login once, then it's remembered |
-| 🧠 | **Monaco API injection** | Writes directly into LeetCode's editor API with retry + post-injection verification |
-| 🖥️ | **Ink TUI** | React-based terminal UI with live progress, verdicts, and a summary screen |
-| ⏱️ | **Smart rate limiting** | 8s between submissions, 15s cooldown every 5 problems — time estimate shown upfront |
-| ✅ | **Verdict detection** | Polls "Judging…" state transitions to capture the actual result reliably |
-| 🔁 | **Skip logic** | Auto-skips already-solved and premium problems via GraphQL status check |
+| Feature | Detail |
+|---|---|
+| **1,465+ C++ solutions** | Local JSON archive — no network call for the solution itself |
+| **Cloudflare bypass** | Headed Chrome with persistent session; manual login once, then it's remembered |
+| **Monaco API injection** | Writes directly into LeetCode's editor API with retry + post-injection verification |
+| **Ink TUI** | React-based terminal UI with live progress, verdicts, and a summary screen |
+| **Smart rate limiting** | 8s between submissions, 15s cooldown every 5 problems — time estimate shown upfront |
+| **Verdict detection** | Polls "Judging…" state transitions to capture the actual result reliably |
+| **Skip logic** | Auto-skips already-solved and premium problems via GraphQL status check |
+
 
 ---
 
 ## ⚡ How It Works
-
-```
-  ┌─────────────────┐     GraphQL      ┌──────────────────┐
-  │  Problem select │ ────────────────▶│  LeetCode API    │
-  │  (skip if done) │                  │  (status check)  │
-  └────────┬────────┘                  └──────────────────┘
-           │
-           ▼
-  ┌─────────────────┐    Chrome CDP    ┌──────────────────┐
-  │  Puppeteer      │ ────────────────▶│  leetcode.com    │
-  │  browser setup  │                  │  /problems/{slug}│
-  └────────┬────────┘                  └──────────────────┘
-           │
-           ▼
-  ┌─────────────────┐   Monaco API     ┌──────────────────┐
-  │  Code injection │ ────────────────▶│  Editor          │
-  │  + verify       │   (C++ switch)   │  (value verify)  │
-  └────────┬────────┘                  └──────────────────┘
-           │
-           ▼
-  ┌─────────────────┐   DOM polling    ┌──────────────────┐
-  │  Submit &       │ ────────────────▶│  Verdict panel   │
-  │  read verdict   │  (Judging → ✓)   │  .text-sm...     │
-  └─────────────────┘                  └──────────────────┘
-```
-
+![Workflow Diagram](./assets/architecture.png)
 **Phase breakdown:**
 
 1. **Problem selection** — GraphQL checks solved/premium status. Reads solution from `data/problems/` locally.
