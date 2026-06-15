@@ -1,181 +1,250 @@
-# LeetCode Solver Bot
-
-A sophisticated bot that automatically solves LeetCode problems by injecting C++ solutions from a local archive and submitting them through a browser.
-
-## Overview
-
-LeetCode Solver Bot is an automated solution submission system that:
-- Reads C++ solutions from a local JSON archive (1,465+ problems)
-- Bypasses Cloudflare protection using Puppeteer
-- Injects solutions via Monaco API into LeetCode's web interface
-- Submits solutions and reads verdicts automatically
-- Includes rate limiting and cooldown mechanisms
-- Features a sleek Ink-based TUI for user interaction
-
-## Key Features
-
-- **1,465+ C++ Solutions**: Complete archive of C++ solutions in `data/problems/`
-- **Cloudflare Bypass**: Headed browser with manual login support
-- **Smart Rate Limiting**: 8s between submissions, 15s cooldown every 5 problems
-- **TUI Interface**: Beautiful terminal UI with real-time progress tracking
-- **Post-Injection Verification**: Ensures code injection success before submission
-- **Verdict Detection**: Waits for "Judging..." to appear/disappear to read results
-
-## Architecture
+<div align="center">
 
 ```
-src/
-├── index.tsx                 # Entry point — renders Ink TUI
-├── config.js                 # Environment config from .env
-├── tui/
-│   ├── App.tsx               # Main app — orchestrates phases
-│   └── components/
-│       ├── Banner.tsx        # ASCII art + quote
-│       ├── LoginPrompt.tsx   # Login instructions
-│       ├── ProblemInput.tsx  # Count prompt
-│       ├── Progress.tsx      # Live problem feed
-│       └── Complete.tsx      # Summary screen
-├── browser/
-│   └── BrowserManager.js     # Puppeteer singleton
-├── api/
-│   └── LeetCodeAPI.js        # GraphQL client for problem status
-├── core/
-│   ├── Authenticator.js      # Login + cookie extraction
-│   └── Solver.js             # Language switch, code injection, submit, verdict
-├── file/
-│   └── FileManager.js        # Read problems/, manage SolvedProblems.json
-└── utils/
-    ├── Logger.js             # Chalk-based colored output
-    └── helpers.js            # sleep()
-data/
-└── problems/                 # C++ solution JSON files
+██╗     ███████╗███████╗████████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██║     ██╔════╝██╔════╝╚══██╔══╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+██║     █████╗  █████╗     ██║   ██║     ██║   ██║██║  ██║█████╗  
+██║     ██╔══╝  ██╔══╝     ██║   ██║     ██║   ██║██║  ██║██╔══╝  
+███████╗███████╗███████╗   ██║   ╚██████╗╚██████╔╝██████╔╝███████╗
+╚══════╝╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
+
+          ███████╗ ██████╗ ██╗    ██╗   ██╗███████╗██████╗
+          ██╔════╝██╔═══██╗██║    ██║   ██║██╔════╝██╔══██╗
+          ███████╗██║   ██║██║    ██║   ██║█████╗  ██████╔╝
+          ╚════██║██║   ██║██║    ╚██╗ ██╔╝██╔══╝  ██╔══██╗
+          ███████║╚██████╔╝███████╗╚████╔╝ ███████╗██║  ██║
+          ╚══════╝ ╚═════╝ ╚══════╝ ╚═══╝  ╚══════╝╚═╝  ╚═╝
+                                                            
+                         ██████╗  ██████╗ ████████╗
+                         ██╔══██╗██╔═══██╗╚══██╔══╝
+                         ██████╔╝██║   ██║   ██║   
+                         ██╔══██╗██║   ██║   ██║   
+                         ██████╔╝╚██████╔╝   ██║   
+                         ╚═════╝  ╚═════╝    ╚═╝   
 ```
 
-## How It Works
+*"I came, I saw, I copied the optimal solution."* — Julius Caesar, probably
 
-### 1. Problem Selection
-- GraphQL API checks if problem is already solved or premium
-- Skips solved/premium problems automatically
-- Reads from local JSON archive in `data/problems/`
+<br/>
 
-### 2. Browser Setup
-- Uses Puppeteer with Chrome (headed for manual Cloudflare login)
-- Persists browser profile for session continuity
-- Configured with `--no-sandbox` for WSL2 compatibility
+![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=node.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript&logoColor=white)
+![Puppeteer](https://img.shields.io/badge/Puppeteer-headless%20chrome-40B5A4?style=flat-square&logo=googlechrome&logoColor=white)
+![C++](https://img.shields.io/badge/C%2B%2B-1465%2B%20solutions-00599C?style=flat-square&logo=cplusplus&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 
-### 3. Navigation & Authentication
-- Navigates to `leetcode.com/problems/{slug}`
-- Waits for LeetCode boilerplate to load (avoids race conditions)
-- Requires manual Cloudflare login via TUI prompt
+</div>
 
-### 4. Solution Injection
-- Waits for Monaco editor to be ready
-- Switches editor language if not C++
-- Injects code via Monaco API with retry + post-injection verification
-- Race condition fix: waits for `value.includes('class Solution') && value.length > 50`
+---
 
-### 5. Submission & Verdict
-- Clicks submit button
-- Waits for "Judging..." to appear then disappear
-- Reads verdict from result panel (`.text-sm.text-sd-muted-foreground`)
+> Automated LeetCode solution submission bot. Reads C++ solutions from a local archive of **1,465+ problems**, injects them into LeetCode's Monaco editor via Puppeteer, and submits — all from a slick Ink-based terminal UI.
 
-### 6. Rate Limiting
-- 8s delay between submissions
-- 15s cooldown every 5 problems
-- Time estimate formula: `count × 10s + (count/5) × 15s`
+>[!NOTE]
+>->no you wont get blocked by leetcode, i have tested it with many accounts. you can inflate your lc profile with extreme ease with this bot. many recruiters use leetcode to screen candidates, and the number matters for the initial screening.
 
-## Technology Stack
+<br/>
 
-### Frontend (TUI)
-- **React + TypeScript**: Component-based UI
-- **Ink**: Terminal UI library
-- **Node.js**: Runtime with `tsx` for JSX transpilation
+<div align="center">
+  <img src="./lc-solver-bot.gif" alt="Demo GIF">
+</div>
 
-### Backend (Solver)
-- **Puppeteer**: Browser automation
-- **Node.js**: JavaScript runtime
+<br/>
 
-### Data
-- **JSON Files**: 1,465 C++ solution files in `data/problems/`
-- **GraphQL**: LeetCode's API for problem status checks
+---
 
-## Cloudflare Handling
+## ✦ Features
 
-The bot handles Cloudflare protection through:
+| | Feature | Detail |
+|---|---|---|
+| 📦 | **1,465+ C++ solutions** | Local JSON archive — no network call for the solution itself |
+| 🛡️ | **Cloudflare bypass** | Headed Chrome with persistent session; manual login once, then it's remembered |
+| 🧠 | **Monaco API injection** | Writes directly into LeetCode's editor API with retry + post-injection verification |
+| 🖥️ | **Ink TUI** | React-based terminal UI with live progress, verdicts, and a summary screen |
+| ⏱️ | **Smart rate limiting** | 8s between submissions, 15s cooldown every 5 problems — time estimate shown upfront |
+| ✅ | **Verdict detection** | Polls "Judging…" state transitions to capture the actual result reliably |
+| 🔁 | **Skip logic** | Auto-skips already-solved and premium problems via GraphQL status check |
 
-1. **Headed Browser**: Runs with visible Chrome window for manual login
-2. **TUI Prompt**: Displays instructions for Cloudflare login
-3. **Session Persistence**: Uses Chrome profile to maintain authenticated state
-4. **domcontentloaded**: Uses DOM ready event instead of `networkidle2` to avoid Cloudflare hangs
+---
 
-## Installation & Setup
+## ⚡ How It Works
+
+```
+  ┌─────────────────┐     GraphQL      ┌──────────────────┐
+  │  Problem select │ ────────────────▶│  LeetCode API    │
+  │  (skip if done) │                  │  (status check)  │
+  └────────┬────────┘                  └──────────────────┘
+           │
+           ▼
+  ┌─────────────────┐    Chrome CDP    ┌──────────────────┐
+  │  Puppeteer      │ ────────────────▶│  leetcode.com    │
+  │  browser setup  │                  │  /problems/{slug}│
+  └────────┬────────┘                  └──────────────────┘
+           │
+           ▼
+  ┌─────────────────┐   Monaco API     ┌──────────────────┐
+  │  Code injection │ ────────────────▶│  Editor          │
+  │  + verify       │   (C++ switch)   │  (value verify)  │
+  └────────┬────────┘                  └──────────────────┘
+           │
+           ▼
+  ┌─────────────────┐   DOM polling    ┌──────────────────┐
+  │  Submit &       │ ────────────────▶│  Verdict panel   │
+  │  read verdict   │  (Judging → ✓)   │  .text-sm...     │
+  └─────────────────┘                  └──────────────────┘
+```
+
+**Phase breakdown:**
+
+1. **Problem selection** — GraphQL checks solved/premium status. Reads solution from `data/problems/` locally.
+2. **Browser setup** — Puppeteer with a persistent Chrome profile. Cloudflare sessions survive restarts.
+3. **Navigation** — Loads the problem URL, waits on `domcontentloaded` (not `networkidle2` — avoids Cloudflare hangs).
+4. **Injection** — Switches editor language to C++ if needed. Injects via Monaco API and verifies with `value.includes('class Solution') && value.length > 50`.
+5. **Submission** — Clicks submit, waits for `Judging…` to appear then disappear, reads result.
+6. **Rate limiting** — 8s delay between each problem. 15s cooldown every 5th. Time estimate printed before the run starts.
+
+---
+
+## 🗂️ Architecture
+
+```
+leetcode-solver-bot/
+│
+├── src/
+│   ├── index.tsx                 # Entry point — renders Ink TUI
+│   ├── config.js                 # Environment config from .env
+│   │
+│   ├── tui/
+│   │   ├── App.tsx               # Main app — orchestrates all phases
+│   │   └── components/
+│   │       ├── Banner.tsx        # ASCII art + quote
+│   │       ├── LoginPrompt.tsx   # Cloudflare login instructions
+│   │       ├── ProblemInput.tsx  # How many problems? prompt
+│   │       ├── Progress.tsx      # Live problem feed + verdicts
+│   │       └── Complete.tsx      # Run summary screen
+│   │
+│   ├── browser/
+│   │   └── BrowserManager.js     # Puppeteer singleton
+│   │
+│   ├── api/
+│   │   └── LeetCodeAPI.js        # GraphQL client — problem status
+│   │
+│   ├── core/
+│   │   ├── Authenticator.js      # Login + cookie extraction
+│   │   └── Solver.js             # Language switch · inject · submit · verdict
+│   │
+│   ├── file/
+│   │   └── FileManager.js        # Read problems/ · manage SolvedProblems.json
+│   │
+│   └── utils/
+│       ├── Logger.js             # Chalk-based colored output
+│       └── helpers.js            # sleep()
+│
+└── data/
+    └── problems/                 # 1,465+ C++ solution JSON files
+```
+
+---
+
+## 🚀 Setup
 
 ### Prerequisites
+
 - Node.js 18+
-- Chrome/Chromium browser
-- WSL2 (optional, for Linux)
+- Chrome or Chromium
+- WSL2 (optional, for Windows users)
 
-### Steps
+### Installation
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+**1. Clone & install**
+```bash
+git clone https://github.com/your-username/leetcode-solver-bot
+cd leetcode-solver-bot
+npm install
+```
 
-3. Create `.env` file with:
-   ```env
-   USER_EMAIL=your-email@example.com
-   GOOGLE_CHROME_EXECUTABLE_PATH=/path/to/chrome
-   ```
+**2. Create your `.env`**
+```env
+USER_EMAIL=your-email@example.com
+GOOGLE_CHROME_EXECUTABLE_PATH=/path/to/chrome   # optional — auto-detected if omitted
+```
 
-4. Run the bot:
-   ```bash
-   npm start
-   ```
+**3. Run**
+```bash
+npm start
+```
 
-## Configuration
+A Chrome window will open on first run. Complete the Cloudflare challenge manually — the session is persisted, so you won't have to do this again.
 
-### Environment Variables
-- `USER_EMAIL`: LeetCode account email for authentication
-- `GOOGLE_CHROME_EXECUTABLE_PATH`: Path to Chrome executable (optional)
+---
 
-### Rate Limiting
-- **Submission Delay**: 8 seconds between submissions
-- **Cooldown Period**: 15 seconds every 5 problems
-- **Time Estimate**: Calculated based on count and cooldowns
+## ⚙️ Configuration
 
-## Development
+### Rate limiting
 
-### Scripts
-- `npm start`: Start the TUI application
+| Parameter | Value | Notes |
+|---|---|---|
+| Submission delay | `8s` | Between every problem |
+| Cooldown period | `15s` | Triggered every 5 problems |
+| Time estimate | `count × 10s + ⌊count/5⌋ × 15s` | Shown before the run starts |
 
-### Code Style
-- TypeScript with ESLint and Prettier
-- React components with functional syntax
-- Ink for terminal UI components
+### Adding solutions
 
-## Testing
+Drop new solutions into `data/problems/` as JSON files following the existing format. The `SolvedProblems.json` tracker is updated automatically after each successful submission.
 
-Test results: 10/10 problems solved successfully after all fixes
+---
 
-## Known Issues & Limitations
+## 🛠️ Tech Stack
 
-1. **Cloudflare**: Requires manual login (browser must be visible)
-2. **Rate Limiting**: Fixed delays may need adjustment for different network conditions
-3. **Premium Problems**: Cannot solve premium LeetCode problems
-4. **Session Management**: Requires re-authentication after long breaks
+<details>
+<summary><b>Frontend (TUI)</b></summary>
 
-## Contributing
+- **React** — Component model for terminal UI
+- **Ink** — Renders React components into the terminal
+- **TypeScript** — Type safety across TUI components
+- **tsx** — JSX transpilation without a build step
 
-1. Add new C++ solutions to `data/problems/` directory
-2. Update `SolvedProblems.json` to track progress
-3. Report issues and suggest improvements
+</details>
 
-## Built By
+<details>
+<summary><b>Backend (Solver)</b></summary>
 
-Created by [PrakharMishra531](https://github.com/PrakharMishra531)
+- **Puppeteer** — Browser automation + Monaco API access
+- **Node.js** — Runtime for the entire bot
+- **GraphQL** — LeetCode's own API for problem status checks
 
-## License
+</details>
 
-MIT License
+<details>
+<summary><b>Data</b></summary>
+
+- **JSON files** — 1,465 C++ solution files in `data/problems/`
+- **SolvedProblems.json** — Local tracker to avoid re-submission
+
+</details>
+
+---
+
+## ⚠️ Known Limitations
+
+- **Cloudflare** — Requires a one-time manual login. Browser must stay visible (headed mode only).
+- **Rate delays** — Fixed cooldowns; may need tuning for different network conditions.
+- **Premium problems** — Detected via GraphQL and skipped automatically. Can't solve what you can't see.
+- **Session expiry** — Long breaks may require re-authentication.
+
+---
+
+## 🤝 Contributing
+
+1. Add new C++ solutions to `data/problems/`
+2. Follow the existing JSON format
+3. Open a PR with what you added
+
+---
+
+<div align="center">
+
+MIT License · built with Puppeteer, Ink, and zero remorse
+
+*If this saved your grind, leave a ⭐*
+
+</div>
