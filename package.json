@@ -1,0 +1,26 @@
+{
+  "name": "leetcode-solver-bot",
+  "version": "1.0.0",
+  "description": "Automated LeetCode solver using Puppeteer and Monaco API",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --import tsx/esm src/index.tsx"
+  },
+  "keywords": [
+    "leetcode",
+    "automation",
+    "puppeteer"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "dotenv": "^16.4.5",
+    "ink": "^7.0.6",
+    "ink-select-input": "^6.2.0",
+    "ink-text-input": "^6.0.0",
+    "puppeteer": "^21.3.8",
+    "react": "^19.2.7",
+    "tsx": "^4.22.4"
+  }
+}
