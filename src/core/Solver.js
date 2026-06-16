@@ -1,7 +1,7 @@
 import Logger from '../utils/Logger.js';
 import FileManager from '../file/FileManager.js';
 import LeetCodeAPI from '../api/LeetCodeAPI.js';
-import {getBrowserDetails, clearBrowserCache, closeBrowser} from '../browser/BrowserManager.js';
+import {getBrowserDetails, clearBrowserCache, closeBrowser, resetBrowser} from '../browser/BrowserManager.js';
 import {sleep} from '../utils/helpers.js';
 
 const LANG_IDS = {
@@ -70,7 +70,7 @@ class Solver {
     return false;
   }
 
-  static async #solveProblem(problemName) {
+  static async #solveProblem(problemName, retried = false) {
     Logger.warn(`[NAVIGATING]\t\t\t:${problemName}`);
 
     // Check via API if already solved or premium
@@ -91,10 +91,21 @@ class Solver {
     }
 
     const {page} = await getBrowserDetails();
-    await page.goto(`https://leetcode.com/problems/${problemName}`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 30000,
-    });
+    try {
+      await page.goto(`https://leetcode.com/problems/${problemName}`, {
+        waitUntil: 'domcontentloaded',
+        timeout: 30000,
+      });
+    } catch (err) {
+      if (!retried) {
+        Logger.error(`[NAVIGATION_FAILED]\t\t:${problemName} - ${err.message}`);
+        Logger.warn(`[BROWSER_RESET]\t\t: Resetting browser and retrying...`);
+        await resetBrowser();
+        return this.#solveProblem(problemName, true);
+      }
+      Logger.error(`[NAVIGATION_FAILED]\t\t:${problemName}. Skipping (retry also failed).`);
+      return;
+    }
 
     // Wait for Monaco editor AND LeetCode's boilerplate to finish loading
     // (React creates the model empty, then populates it ~0.5s later)
@@ -239,6 +250,11 @@ class Solver {
       if (solved % 10 === 0) {
         Logger.warn(`[CLEARING_CACHE]\t\t: Flushing browser cache...`);
         await clearBrowserCache();
+      }
+
+      if (solved % 15 === 0) {
+        Logger.warn(`[BROWSER_RESET]\t\t: Periodic browser restart after ${solved} problems...`);
+        await resetBrowser();
       }
     }
   }

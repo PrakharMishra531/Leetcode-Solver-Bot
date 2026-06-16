@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer';
 import {getChromeProfilePath, GOOGLE_CHROME_EXECUTABLE_PATH} from '../config.js';
 import {promises as fs} from 'fs';
+import Logger from '../utils/Logger.js';
 
 class BrowserManager {
   static browser = null;
@@ -73,6 +74,13 @@ class BrowserManager {
     } catch (_) {}
   }
 
+  static async resetBrowser() {
+    Logger.warn(`[BROWSER_RESET]\t\t: Restarting browser...`);
+    await BrowserManager.closeBrowser();
+    await BrowserManager.init();
+    Logger.success(`[BROWSER_RESET]\t\t: Browser restarted.`);
+  }
+
   static async closeBrowser() {
     if (BrowserManager.browser) {
       try {
@@ -92,4 +100,5 @@ class BrowserManager {
 
 export const getBrowserDetails = async () => BrowserManager.getBrowserDetails();
 export const clearBrowserCache = async () => BrowserManager.clearCache();
+export const resetBrowser = async () => BrowserManager.resetBrowser();
 export const closeBrowser = async () => BrowserManager.closeBrowser();
