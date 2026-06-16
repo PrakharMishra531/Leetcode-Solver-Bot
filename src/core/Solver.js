@@ -1,7 +1,7 @@
 import Logger from '../utils/Logger.js';
 import FileManager from '../file/FileManager.js';
 import LeetCodeAPI from '../api/LeetCodeAPI.js';
-import {getPage, clearBrowserCache, closeBrowser, resetBrowser, resetPage} from '../browser/BrowserManager.js';
+import {newPage, clearBrowserCache, closeBrowser, resetBrowser} from '../browser/BrowserManager.js';
 import {sleep} from '../utils/helpers.js';
 
 const LANG_IDS = {
@@ -90,7 +90,7 @@ class Solver {
       Logger.warn(`[API_CHECK_FAILED]\t\t:${problemName} - ${err.message}. Continuing anyway.`);
     }
 
-    const page = await getPage();
+    const page = await newPage();
     try {
       await page.goto(`https://leetcode.com/problems/${problemName}`, {
         waitUntil: 'domcontentloaded',
@@ -252,11 +252,6 @@ class Solver {
       if (solved % 10 === 0) {
         Logger.warn(`[CLEARING_CACHE]\t\t: Flushing browser cache...`);
         await clearBrowserCache();
-      }
-
-      if (solved % 10 === 0) {
-        Logger.warn(`[RESET_PAGE]\t\t: Clearing page state after ${solved} problems...`);
-        await resetPage();
       }
     }
   }

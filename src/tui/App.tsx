@@ -8,7 +8,7 @@ import Progress from './components/Progress.tsx';
 import Complete from './components/Complete.tsx';
 import Authenticator from '../core/Authenticator.js';
 import FileManager from '../file/FileManager.js';
-import {closeBrowser, clearBrowserCache, resetBrowser, getPage, resetPage} from '../browser/BrowserManager.js';
+import {closeBrowser, clearBrowserCache, resetBrowser, newPage} from '../browser/BrowserManager.js';
 import {setEmail, getUserEmail} from '../config.js';
 
 const PHASES = {
@@ -100,11 +100,11 @@ const App = () => {
         addResult({name: problemName, status: 'judging'});
 
         try {
-          const {getPage: getActivePage} = await import('../browser/BrowserManager.js');
+          const {newPage: getNewPage} = await import('../browser/BrowserManager.js');
           const {sleep} = await import('../utils/helpers.js');
           const {default: Logger} = await import('../utils/Logger.js');
 
-          let page = await getActivePage();
+          let page = await getNewPage();
           try {
             await page.goto(`https://leetcode.com/problems/${problemName}`, {
               waitUntil: 'domcontentloaded',
@@ -113,7 +113,7 @@ const App = () => {
           } catch (navErr) {
             Logger.warn(`[BROWSER_RESET]\t\t: Navigation failed, resetting...`);
             await resetBrowser();
-            page = await getActivePage();
+            page = await getNewPage();
             await page.goto(`https://leetcode.com/problems/${problemName}`, {
               waitUntil: 'domcontentloaded',
               timeout: 30000,
@@ -198,7 +198,6 @@ const App = () => {
           solved++;
           if (solved % 5 === 0) await sleep(15);
           if (solved % 10 === 0) await clearBrowserCache();
-          if (solved % 10 === 0) await resetPage();
           await sleep(8);
 
         } catch (err) {

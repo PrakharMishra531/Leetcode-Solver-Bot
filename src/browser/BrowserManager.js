@@ -70,24 +70,25 @@ class BrowserManager {
     return BrowserManager.page;
   }
 
-  static async resetPage() {
-    if (!BrowserManager.page) return;
-    Logger.warn(`[RESET_PAGE]\t\t: Clearing page state...`);
+  static async newPage() {
+    if (!BrowserManager.browser || !BrowserManager.page) {
+      await BrowserManager.init();
+    }
+    // Close old page to free renderer memory
+    if (BrowserManager.page) {
+      try { await BrowserManager.page.close(); } catch (_) {}
+    }
+    // Create new page — if this fails, the browser target is broken
     try {
-      // Clear DOM and JS state by navigating to about:blank
-      await BrowserManager.page.goto('about:blank', {waitUntil: 'load', timeout: 5000});
-      // Clear storage via CDP
-      const client = await BrowserManager.page.createCDPSession();
-      await client.send('Storage.clearCookies');
-      await client.send('Runtime.evaluate', {expression: 'try{localStorage.clear()}catch(e){}'});
-      await client.send('Runtime.evaluate', {expression: 'try{sessionStorage.clear()}catch(e){}'});
-      await client.detach();
-      // Clear HTTP cache
-      await BrowserManager.clearCache();
-      Logger.success(`[RESET_PAGE]\t\t: Page state cleared.`);
+      BrowserManager.page = await BrowserManager.browser.newPage();
+      return BrowserManager.page;
     } catch (err) {
-      Logger.error(`[RESET_PAGE_FAILED]\t:${err.message}. Resetting browser...`);
-      await BrowserManager.resetBrowser();
+      Logger.error(`[NEW_PAGE_FAILED]\t\t:${err.message}. Restarting browser...`);
+      // Full browser restart — profile persists so session survives
+      await BrowserManager.closeBrowser();
+      await BrowserManager.init();
+      BrowserManager.page = await BrowserManager.browser.newPage();
+      return BrowserManager.page;
     }
   }
 
@@ -133,7 +134,7 @@ class BrowserManager {
 
 export const getBrowserDetails = async () => BrowserManager.getBrowserDetails();
 export const getPage = async () => BrowserManager.getPage();
-export const resetPage = async () => BrowserManager.resetPage();
+export const newPage = async () => BrowserManager.newPage();
 export const clearBrowserCache = async () => BrowserManager.clearCache();
 export const resetBrowser = async () => BrowserManager.resetBrowser();
 export const closeBrowser = async () => BrowserManager.closeBrowser();
